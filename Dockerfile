@@ -27,7 +27,16 @@ RUN cp -R /usr/local/lib/* /usr/lib/
 # Create a minimal instance
 FROM alpine
 
+# copy libs (maintaining symlinks)
 COPY --from=build /usr/lib/ /usr/lib
-COPY --from=build /usr/bin/ /usr/bin
+
+# remove broken symlinks
+RUN find -L /usr/lib -maxdepth 1 -type l -delete
+
+# remove directories
+RUN find /usr/lib -mindepth 1 -maxdepth 1 -type d -exec rm -r {} \;
+
+# copy binaries
+COPY --from=build /usr/bin/spatialite* /usr/bin/
 
 ENTRYPOINT ["spatialite"]
